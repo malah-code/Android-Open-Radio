@@ -1,7 +1,7 @@
 The MIT License (MIT)
 =====================
 
-Copyright (c) 2015 - Y20K.org
+Copyright (c) 2017 - Malah-Code
 -----------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
