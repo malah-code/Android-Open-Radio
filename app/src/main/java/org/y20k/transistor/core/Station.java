@@ -124,6 +124,11 @@ public final class Station implements Comparable<Station>, Parcelable {
     public int RATING;
 
     /**
+     * Station COMMA SEPARATED TAGS (metadata)
+     */
+    public String COMMA_SEPARATED_TAGS;
+
+    /**
      * Station CATEGORY
      */
     public String CATEGORY;
@@ -170,7 +175,7 @@ public final class Station implements Comparable<Station>, Parcelable {
 
 
     /* Main class variables */
-    private String mPlaylistFileContent;
+    public String mPlaylistFileContent;
     private boolean mPlayback;
     private Bundle mStationFetchResults;
 
@@ -213,7 +218,7 @@ public final class Station implements Comparable<Station>, Parcelable {
             mPlaylistFileContent = downloadPlaylistFile(fileLocation);
 
             // parse result of downloadPlaylistFile
-            if (parse(mPlaylistFileContent) && StreamURI != null) {
+            if (parse(mPlaylistFileContent, this) && StreamURI != null) {
                 TITLE = detactStationName(fileLocation);
                 // save results
                 mStationFetchResults.putParcelable(TransistorKeys.RESULT_PLAYLIST_TYPE, contentType);
@@ -276,7 +281,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         }
 
         // parse the raw content of playlist file (mPlaylistFileContent)
-        if (parse(mPlaylistFileContent) && StreamURI != null) {
+        if (parse(mPlaylistFileContent, this) && StreamURI != null) {
             URL streamURL = null;
             try {
                 MainConstructor(folder, streamURL, mActivity);
@@ -388,6 +393,9 @@ public final class Station implements Comparable<Station>, Parcelable {
                             parser.require(XmlPullParser.START_TAG, null, "rating");
                             String ratingVal = readXmlElementText(parser);
                             stationItem.RATING = getIntegerRating(ratingVal);
+                        } else if (tagName.equals("comma_separated_tags")) {
+                            parser.require(XmlPullParser.START_TAG, null, "comma_separated_tags");
+                            stationItem.COMMA_SEPARATED_TAGS = readXmlElementText(parser);
                         } else if (tagName.equals("category")) {
                             parser.require(XmlPullParser.START_TAG, null, "category");
                             stationItem.CATEGORY = readXmlElementText(parser);
@@ -404,9 +412,32 @@ public final class Station implements Comparable<Station>, Parcelable {
                             skipXmlTagParse(parser);
                         }
                     }
-
                     if (stationItem.UNIQUE_ID != null && !stationItem.UNIQUE_ID.isEmpty()
                             && stationItem.StreamURI != null && !stationItem.StreamURI.isEmpty()) {
+
+
+                        //get content type of station streamUrl
+                        ContentType itemCnt = getContentType(Uri.parse(stationItem.StreamURI));
+
+                        //check 3.1.2 station URL (if playlist then extract first station URL
+                        if (isPlaylist(itemCnt)) {
+                            // download and parse station data from playlist file
+                            String itemPlaylistFileContent = downloadPlaylistFile(new URL(stationItem.StreamURI));
+                            // parse result of downloadPlaylistFile and fill streamUrl and Title/subtitle
+                            if (parse(itemPlaylistFileContent, stationItem)) {
+                                //get content type after updating the streamUrl
+                                itemCnt = getContentType(Uri.parse(stationItem.StreamURI));
+                            }else{
+                                LogHelper.e(LOG_TAG, "\n[File probably does not contain a valid streaming URL." + stationItem.StreamURI + "]");
+                                continue; //continue and don't save this station to DB
+                            }
+                        }
+
+                        //update content type of station and override the provided one if available
+                        if(itemCnt.type!=null && !itemCnt.type.isEmpty()) {
+                            stationItem.CONTENT_TYPE = itemCnt.type;
+                        }
+
                         //add default Image URL
                         if (stationItem.IMAGE_PATH == null || stationItem.IMAGE_PATH.isEmpty()) {
                             IMAGE_PATH = getFavIconUrlString(stationItem.StreamURI); //default to fav icon
@@ -508,6 +539,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         CONTENT_TYPE = in.readString();
         DESCRIPTION = in.readString();
         RATING = in.readInt();
+        COMMA_SEPARATED_TAGS = in.readString();
         CATEGORY = in.readString();
         HtmlDescription = in.readString();
         SMALL_IMAGE_PATH = in.readString();
@@ -532,6 +564,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         dest.writeString(CONTENT_TYPE);
         dest.writeString(DESCRIPTION);
         dest.writeInt(RATING);
+        dest.writeString(COMMA_SEPARATED_TAGS);
         dest.writeString(CATEGORY);
         dest.writeString(HtmlDescription);
         dest.writeString(SMALL_IMAGE_PATH);
@@ -728,9 +761,9 @@ public final class Station implements Comparable<Station>, Parcelable {
 
 
     /* Parses string representation of mStationPlaylistFile */
-    private boolean parse(String fileContent) {
+    private boolean parse(String fileContent, Station theStation) {
 
-        mPlaylistFileContent = fileContent;
+        theStation.mPlaylistFileContent = fileContent;
 
         // check for null
         if (fileContent == null) {
@@ -748,40 +781,50 @@ public final class Station implements Comparable<Station>, Parcelable {
 
             // M3U: found station name
             if (line.contains("#EXTINF:-1,")) {
-                TITLE = line.substring(11).trim();
+                if (theStation.TITLE == null || theStation.TITLE.isEmpty()) {
+                    theStation.TITLE = line.substring(11).trim();
+                }
+                if (theStation.SUBTITLE == null || theStation.SUBTITLE.isEmpty()) {
+                    theStation.SUBTITLE = line.substring(11).trim();
+                }
                 // M3U: found stream URL
             } else if (line.startsWith("http")) {
-                StreamURI = line.trim();
+                theStation.StreamURI = line.trim();
             }
 
             // PLS: found station name
             else if (line.startsWith("Title1=")) {
-                TITLE = line.substring(7).trim();
+                if (theStation.TITLE == null || theStation.TITLE.isEmpty()) {
+                    theStation.TITLE = line.substring(7).trim();
+                }
+                if (theStation.SUBTITLE == null || theStation.SUBTITLE.isEmpty()) {
+                    theStation.SUBTITLE = line.substring(7).trim();
+                }
                 // PLS: found stream URL
             } else if (line.startsWith("File1=http")) {
-                StreamURI = line.substring(6).trim();
+                theStation.StreamURI = line.substring(6).trim();
             }
 
         }
 
         in.close();
 
-        if (StreamURI == null || StreamURI == "") {
+        if (theStation.StreamURI == null || theStation.StreamURI == "") {
             LogHelper.e(LOG_TAG, "Unable to parse: " + fileContent);
             return false;
         }
 
         // try to construct name of station from remote mStationPlaylistFile name
-        if ((TITLE == null || TITLE == "") && StreamURI != null && StreamURI != "") {
+        if ((theStation.TITLE == null || theStation.TITLE.isEmpty()) && theStation.StreamURI != null && theStation.StreamURI != "") {
             try {
-                TITLE = detactStationName(new URL(StreamURI));
+                theStation.TITLE = detactStationName(new URL(theStation.StreamURI));
             } catch (MalformedURLException e) {
                 e.printStackTrace();
                 LogHelper.e(LOG_TAG, "Unable to parse: " + fileContent);
                 return false;
             }
-        } else {
-            TITLE = "New Station";
+        } else if (theStation.TITLE == null || theStation.TITLE.isEmpty()) {
+            theStation.TITLE = "New Station";
         }
 
         // file content string parsed successfully
@@ -980,8 +1023,6 @@ public final class Station implements Comparable<Station>, Parcelable {
     }
 
 
-
-
     /**
      * Container class representing the content-type and charset string
      * received from the response header of an HTTP server.
@@ -1076,6 +1117,7 @@ public final class Station implements Comparable<Station>, Parcelable {
             values.put(StationsDbContract.StationEntry.COLUMN_URI, stationItem.StreamURI);
             values.put(StationsDbContract.StationEntry.COLUMN_CONTENT_TYPE, stationItem.CONTENT_TYPE);
             values.put(StationsDbContract.StationEntry.COLUMN_RATING, stationItem.RATING);
+            values.put(StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS, stationItem.COMMA_SEPARATED_TAGS);
             values.put(StationsDbContract.StationEntry.COLUMN_CATEGORY, stationItem.CATEGORY);
             values.put(StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION, stationItem.HtmlDescription);
             values.put(StationsDbContract.StationEntry.COLUMN_SMALL_IMAGE_URL, stationItem.SMALL_IMAGE_PATH);

@@ -5,7 +5,7 @@ android {
     compileSdkVersion 25
     buildToolsVersion '25.0.0'
     defaultConfig {
-        applicationId "org.malah.transistor"
+        applicationId "net.malah.openradio"
         minSdkVersion 19
         targetSdkVersion 25
         defaultPublishConfig "debug"
@@ -20,7 +20,6 @@ android {
         }
         release {
             minifyEnabled true
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField "boolean", "isDebug", "false"
         }

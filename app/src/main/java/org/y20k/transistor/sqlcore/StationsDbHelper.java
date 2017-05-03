@@ -20,7 +20,7 @@ import static org.y20k.transistor.sqlcore.StationsDbContract.StationEntry.TABLE_
 public class StationsDbHelper extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "StationsDb.db";
 
 
@@ -39,6 +39,7 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                     StationsDbContract.StationEntry.COLUMN_CONTENT_TYPE + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_DESCRIPTION + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_RATING + " INTEGER," +
+                    StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE + " INTEGER," +
                     StationsDbContract.StationEntry.COLUMN_THUMP_UP_STATUS + " INTEGER," +
                     StationsDbContract.StationEntry.COLUMN_NAME_SUBTITLE + " TEXT)";
@@ -140,6 +141,7 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                 StationsDbContract.StationEntry.COLUMN_CONTENT_TYPE,
                 StationsDbContract.StationEntry.COLUMN_DESCRIPTION,
                 StationsDbContract.StationEntry.COLUMN_RATING,
+                StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS,
                 StationsDbContract.StationEntry.COLUMN_CATEGORY,
                 StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION,
                 StationsDbContract.StationEntry.COLUMN_SMALL_IMAGE_URL,
@@ -184,6 +186,8 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_DESCRIPTION));
                 station.RATING = cursor.getInt(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_RATING));
+                station.COMMA_SEPARATED_TAGS = cursor.getString(
+                        cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS));
                 station.CATEGORY = cursor.getString(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_CATEGORY));
                 station.HtmlDescription = cursor.getString(

@@ -25,6 +25,7 @@ public final class StationsDbContract {
         public static final String COLUMN_CONTENT_TYPE = "content_type";
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_RATING = "rating";
+        public static final String COLUMN_COMMA_SEPARATED_TAGS = "comma_separated_tags";
         public static final String COLUMN_CATEGORY = "category";
         public static final String COLUMN_HTML_DESCRIPTION = "html_description";
         public static final String COLUMN_SMALL_IMAGE_URL = "small_image_URL";
