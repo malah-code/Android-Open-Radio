@@ -193,7 +193,7 @@ public final class MainActivityFragment extends Fragment {
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         // TODO check if necessary here
-        mRecyclerView.setHasFixedSize(true);
+        //mRecyclerView.setHasFixedSize(true);
 
         // set animator
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -817,6 +817,21 @@ public final class MainActivityFragment extends Fragment {
 
                     // change station within in adapter, scroll to new position and update adapter
                     newStationPosition = mCollectionAdapter.rename(newStationName, station, stationID_Position);
+                    mLayoutManager.scrollToPosition(newStationPosition);
+                    mCollectionAdapter.setStationIDSelected(newStationPosition, mPlayback, false);
+                    mCollectionAdapter.notifyDataSetChanged();
+                }
+                break;
+            case TransistorKeys.STATION_CHANGED_FAVORIT:
+                if (intent.hasExtra(TransistorKeys.EXTRA_STATION_FAVORIT_VALUE) && intent.hasExtra(TransistorKeys.EXTRA_STATION) && intent.hasExtra(TransistorKeys.EXTRA_STATION_Position_ID)) {
+
+                    // get new Fav Value, station and station ID from intent
+                    int newStationFavoritValue = intent.getIntExtra(TransistorKeys.EXTRA_STATION_FAVORIT_VALUE,0);
+                    Station station = intent.getParcelableExtra(TransistorKeys.EXTRA_STATION);
+                    int stationID_Position = intent.getIntExtra(TransistorKeys.EXTRA_STATION_Position_ID, 0);
+
+                    // change station within in adapter, scroll to new position and update adapter
+                    newStationPosition = mCollectionAdapter.changeFavoritValue(newStationFavoritValue, station, stationID_Position);
                     mLayoutManager.scrollToPosition(newStationPosition);
                     mCollectionAdapter.setStationIDSelected(newStationPosition, mPlayback, false);
                     mCollectionAdapter.notifyDataSetChanged();

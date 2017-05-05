@@ -100,6 +100,7 @@ public final class PlayerActivityFragment extends Fragment {
     private ImageButton mStationMenuView;
     private ImageView mPlaybackIndicator;
     private ImageButton mPlaybackButton;
+    private ImageButton mPlayerFavoritButton;
     private BroadcastReceiver mPlaybackStateChangedReceiver;
     private BroadcastReceiver mCollectionChangedReceiver;
     private BroadcastReceiver mMetadataChangedReceiver;
@@ -108,6 +109,7 @@ public final class PlayerActivityFragment extends Fragment {
     private boolean mVisibility;
     private Station mStation;
     private int mStationRating;
+    private int mStationFavourit;
     private String mStationDescription;
     private String mStationHtmlDesciption;
     private WebView mWbStationWebViewView;
@@ -158,6 +160,7 @@ public final class PlayerActivityFragment extends Fragment {
                 mStationDescription = mStation.DESCRIPTION;
                 mStationHtmlDesciption = mStation.HtmlDescription;
                 mStationRating = mStation.RATING;
+                mStationFavourit = mStation.IS_FAVOURITE;
                 mStreamUri = mStation.getStreamUri().toString();
             } else {
                 mStationName = mActivity.getString(R.string.descr_station_name_example);
@@ -187,6 +190,7 @@ public final class PlayerActivityFragment extends Fragment {
         mStationMetadataView = (TextView) mRootView.findViewById(R.id.player_textview_station_metadata);
         mPlaybackIndicator = (ImageView) mRootView.findViewById(R.id.player_playback_indicator);
         mPlaybackButton = (ImageButton) mRootView.findViewById(R.id.player_playback_button);
+        mPlayerFavoritButton = (ImageButton) mRootView.findViewById(R.id.player_item_favorit_button);
 
         mStationImageView = (SimpleDraweeView) mRootView.findViewById(R.id.player_imageview_station_icon);
         mStationMenuView = (ImageButton) mRootView.findViewById(R.id.player_item_more_button);
@@ -286,7 +290,7 @@ public final class PlayerActivityFragment extends Fragment {
 
         // show metadata
         //remove unneeded mPlayback , and replace it SingletonProperties.getInstance().getIsPlayback()
-        if ( SingletonProperties.getInstance().getIsPlayback() && mStationMetadata != null) {
+        if (SingletonProperties.getInstance().getIsPlayback() && mStationMetadata != null) {
             mStationMetadataView.setText(mStationMetadata);
             mStationMetadataView.setVisibility(View.VISIBLE);
             mStationMetadataView.setSelected(true);
@@ -327,7 +331,13 @@ public final class PlayerActivityFragment extends Fragment {
                 handlePlaybackButtonClick();
             }
         });
-
+        mPlayerFavoritButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // handle fav click
+                animateFovoritVisual(mActivity, (mStation.IS_FAVOURITE == 0) ? 1 : 0);
+            }
+        });
         return mRootView;
     }
 
@@ -515,7 +525,7 @@ public final class PlayerActivityFragment extends Fragment {
         outState.putParcelable(TransistorKeys.INSTANCE_STATION, mStation);
         outState.putInt(TransistorKeys.INSTANCE_STATION_ID, mStationID_Position);
         //remove unneeded mPlayback , and replace it SingletonProperties.getInstance().getIsPlayback()
-        outState.putBoolean(TransistorKeys.INSTANCE_PLAYBACK,SingletonProperties.getInstance().getIsPlayback());
+        outState.putBoolean(TransistorKeys.INSTANCE_PLAYBACK, SingletonProperties.getInstance().getIsPlayback());
     }
 
 
@@ -670,10 +680,46 @@ public final class PlayerActivityFragment extends Fragment {
     }
 
 
+    /* Animate button and then set visual state */
+    private void animateFovoritVisual(Context context, final int newStatus) {
+        // get rotate_infinite animation from xml
+        Animation rotate;
+        //remove unneeded mPlayback , and replace it SingletonProperties.getInstance().getIsPlayback()
+
+        rotate = AnimationUtils.loadAnimation(context, R.anim.rotate_clockwise_slow);
+
+        // attach listener for animation end
+        rotate.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                // set up button symbol and playback indicator afterwards
+                mStation.IS_FAVOURITE = newStatus;
+                //update DB
+                StationsDbHelper mDbHelper = new StationsDbHelper(mActivity);
+                int result = mDbHelper.ChangeIsFavouriteOfStation(mStation._ID, newStatus);
+                //change visibility
+                setVisualState();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+
+        // start animation of button
+        if (mPlayerFavoritButton != null)
+            mPlayerFavoritButton.startAnimation(rotate);
+
+    }
+
     /* Set button symbol and playback indicator */
     private void setVisualState() {
         // this station is running
-        if ( SingletonProperties.getInstance().getIsPlayback()  && mStation != null && mStation.getPlaybackState()) {
+        if (SingletonProperties.getInstance().getIsPlayback() && mStation != null && mStation.getPlaybackState()) {
             // change playback button image to stop
             mPlaybackButton.setImageResource(R.drawable.smbl_stop);
             // change playback indicator
@@ -698,6 +744,14 @@ public final class PlayerActivityFragment extends Fragment {
             // mStationMetadata = null;
         }
 
+        //favorit icon
+        int newStatus = mStation.IS_FAVOURITE;
+        if (newStatus == 1) {
+            mPlayerFavoritButton.setImageResource(R.drawable.ic_favorite_black_24dp);
+        } else {
+            mPlayerFavoritButton.setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        }
+
     }
 
     /* Loads app state from preferences */
@@ -705,7 +759,7 @@ public final class PlayerActivityFragment extends Fragment {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
         mStationID_Position = settings.getInt(TransistorKeys.PREF_STATION_ID_SELECTED, 0);
         mStationMetadata = settings.getString(TransistorKeys.PREF_STATION_METADATA, null);
-        LogHelper.v(LOG_TAG, "Loading state (" + SingletonProperties.getInstance().CurrentSelectedStation_ID + " / " + SingletonProperties.getInstance().getLastRunningStation_ID() + " / " +SingletonProperties.getInstance().getIsPlayback()  + " / " + (SingletonProperties.getInstance().CurrentSelectedStation_Playback_Status == PlaybackStatus.LOADING) + " / " + mStationMetadata + ")");
+        LogHelper.v(LOG_TAG, "Loading state (" + SingletonProperties.getInstance().CurrentSelectedStation_ID + " / " + SingletonProperties.getInstance().getLastRunningStation_ID() + " / " + SingletonProperties.getInstance().getIsPlayback() + " / " + (SingletonProperties.getInstance().CurrentSelectedStation_Playback_Status == PlaybackStatus.LOADING) + " / " + mStationMetadata + ")");
     }
 
 
@@ -752,7 +806,7 @@ public final class PlayerActivityFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 //remove unneeded mPlayback , and replace it SingletonProperties.getInstance().getIsPlayback()
-                if ( SingletonProperties.getInstance().getIsPlayback() && intent.hasExtra(TransistorKeys.EXTRA_METADATA)) {
+                if (SingletonProperties.getInstance().getIsPlayback() && intent.hasExtra(TransistorKeys.EXTRA_METADATA)) {
                     mStationMetadata = intent.getStringExtra(TransistorKeys.EXTRA_METADATA);
                     mStationMetadataView.setText(mStationMetadata);
                     mStationMetadataView.setSelected(true);
@@ -783,7 +837,7 @@ public final class PlayerActivityFragment extends Fragment {
 
             // CASE: player is preparing stream
             case TransistorKeys.PLAYBACK_LOADING_STATION:
-                if (mVisibility  && mStation != null && mStation.getStreamUri().equals(station.getStreamUri())) {
+                if (mVisibility && mStation != null && mStation.getStreamUri().equals(station.getStreamUri())) {
                     changeVisualState(mActivity);
                 }
                 break;
@@ -804,7 +858,7 @@ public final class PlayerActivityFragment extends Fragment {
                     mStationMetadataView.setSelected(true);
                 }
 
-                if (mVisibility  && mStation != null && mStation.getStreamUri().equals(station.getStreamUri())) {
+                if (mVisibility && mStation != null && mStation.getStreamUri().equals(station.getStreamUri())) {
                     changeVisualState(mActivity);
                 }
                 break;
@@ -812,7 +866,7 @@ public final class PlayerActivityFragment extends Fragment {
             // CASE: playback was stopped
             case TransistorKeys.PLAYBACK_STOPPED:
                 // rotate_infinite playback button
-                if (mVisibility  && mStation != null && mStation.getStreamUri().equals(station.getStreamUri())) {
+                if (mVisibility && mStation != null && mStation.getStreamUri().equals(station.getStreamUri())) {
                     changeVisualState(mActivity);
                 }
                 break;

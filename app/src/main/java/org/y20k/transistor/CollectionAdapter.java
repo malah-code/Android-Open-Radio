@@ -37,6 +37,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import org.y20k.transistor.core.Station;
@@ -88,12 +89,19 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
             @Override
             public int compare(Station station1, Station station2) {
                 // Compares two stations: returns "1" if name if this station is greater than name of given station
-                return station1.TITLE.compareToIgnoreCase(station2.TITLE);
+                int result = Integer.compare(station2.IS_FAVOURITE, station1.IS_FAVOURITE);
+                if (result == 0) {//equal
+                    result = station1.CATEGORY.compareToIgnoreCase(station2.CATEGORY);
+                    if (result == 0) {
+                        result = station1.TITLE.compareToIgnoreCase(station2.TITLE);
+                    }
+                }
+                return result;
             }
 
             @Override
             public boolean areContentsTheSame(Station oldStation, Station newStation) {
-                return oldStation.TITLE.equals(newStation.TITLE);
+                return oldStation.StreamURI.equals(newStation.StreamURI);
             }
 
             @Override
@@ -156,7 +164,13 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
         } else {
             holder.getListItemLayout().setSelected(false);
         }
-
+        String TitleOfBox = getTitleOfBox(station, position);
+        if (TitleOfBox.isEmpty()) {
+            holder.getLayoutCategoryView().setVisibility(View.GONE);
+        } else {
+            holder.getLayoutCategoryView().setVisibility(View.VISIBLE);
+            holder.getTxtCategoryView().setText(TitleOfBox);
+        }
         // set station image
         File stationImageFile = station.getStationImage(mActivity);
         if (stationImageFile != null && stationImageFile.exists()) {
@@ -172,7 +186,56 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
         // set station name
         holder.getStationNameView().setText(station.TITLE);
         holder.getRatingBarView().setRating(station.RATING);
+        //change favorit button visibility
+        ImageButton favView = holder.getFavoritButtonView();
+        changeVisibilityOfFavButton(favView, station.IS_FAVOURITE);
 
+        favView.setTag(position);
+        //on click favorit icon change the status then
+        favView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // handle fav click
+                int positoinHere = Integer.valueOf(v.getTag().toString());
+                Station stationHere = mStationList.get(positoinHere);
+                animateFovoritVisual(mActivity, v, stationHere);
+            }
+
+            private void animateFovoritVisual(Context context, final View vFavButton, final Station stationHere) {
+                Animation rotate;
+                final int positionHere = Integer.valueOf(vFavButton.getTag().toString());
+                final int newStatus = (stationHere.IS_FAVOURITE == 0) ? 1 : 0;
+                rotate = AnimationUtils.loadAnimation(context, R.anim.rotate_clockwise_slow);
+                // attach listener for animation end
+                rotate.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        // send local broadcast
+                        Intent i = new Intent();
+                        i.setAction(TransistorKeys.ACTION_COLLECTION_CHANGED);
+                        i.putExtra(TransistorKeys.EXTRA_COLLECTION_CHANGE, TransistorKeys.STATION_CHANGED_FAVORIT);
+                        i.putExtra(TransistorKeys.EXTRA_STATION_Position_ID, positionHere);
+                        i.putExtra(TransistorKeys.EXTRA_STATION, stationHere);
+                        i.putExtra(TransistorKeys.EXTRA_STATION_FAVORIT_VALUE, newStatus);
+                        LocalBroadcastManager.getInstance(mActivity.getApplication()).sendBroadcast(i);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+                    }
+                });
+
+                // start animation of button
+                if (vFavButton != null)
+                    vFavButton.startAnimation(rotate);
+
+
+            }
+        });
         //station description
         holder.getmStationDesciptionView().setText(station.DESCRIPTION);
 
@@ -260,6 +323,36 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
             }
         });
 
+    }
+
+    private String getTitleOfBox(Station station, int position) {
+        if (position == 0 && station.IS_FAVOURITE == 1) {
+            //Fav and the first one
+            return "Fav";
+        } else if (station.IS_FAVOURITE == 1) {
+            //Fav but not the first one
+            return "";
+        } else {
+            //not Fav
+            //check if it's first one in it's category
+            if (position == 0) {
+                //it's the first one ever , and not fav one
+                return station.CATEGORY;
+            } else if (position > 0 && (mStationList.get(position - 1).IS_FAVOURITE==1 ||  !mStationList.get(position - 1).CATEGORY.equalsIgnoreCase(station.CATEGORY))) {
+                //not first but first in it's category
+                return station.CATEGORY;
+            } else {
+                return "";
+            }
+        }
+    }
+
+    private void changeVisibilityOfFavButton(View vFavButton, int newStatus) {
+        if (newStatus == 1) {
+            ((ImageButton) vFavButton).setImageResource(R.drawable.ic_favorite_black_24dp);
+        } else {
+            ((ImageButton) vFavButton).setImageResource(R.drawable.ic_favorite_border_black_24dp);
+        }
     }
 
 
@@ -526,10 +619,10 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
     }
 
     /* Rename station within collection */
-    public int rename(String newStationName, Station station, int stationID) {
+    public int rename(String newStationName, Station station, int stationIDPosition) {
 
         // get old station
-        Station oldStation = mStationList.get(stationID);
+        Station oldStation = mStationList.get(stationIDPosition);
 
         // name of station is new
         if (station != null && !oldStation.TITLE.equals(newStationName)) {
@@ -542,7 +635,7 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
             station.TITLE = newStationName;
 
             // update station list
-            mStationList.updateItemAt(stationID, station);
+            mStationList.updateItemAt(stationIDPosition, station);
 
 
             // return changed station
@@ -556,6 +649,33 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
 
     }
 
+    /* Change Fav Value station within collection */
+    public int changeFavoritValue(int newFavoritValue, Station station, int stationIDPosition) {
+
+        // get old station
+        Station oldStation = mStationList.get(stationIDPosition);
+
+        // name of station is new
+        if (station != null) {
+            //update DB
+            StationsDbHelper mDbHelper = new StationsDbHelper(mActivity);
+            int result = mDbHelper.ChangeIsFavouriteOfStation(oldStation._ID, newFavoritValue);
+
+            //update station object
+            oldStation.IS_FAVOURITE = newFavoritValue;
+
+            // update station list
+            mStationList.updateItemAt(stationIDPosition, station);
+
+            // return changed station
+            return mStationList.indexOf(station);
+        } else {
+            // name of station is null or not new - notify user
+            Toast.makeText(mActivity, mActivity.getString(R.string.toastalert_add_favorit_unsuccessful), Toast.LENGTH_LONG).show();
+            return -1;
+        }
+
+    }
 
     /* Delete station within collection */
     public int delete(Station station) {
@@ -577,7 +697,7 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
 
         // remove station and notify user
         if (success) {
-            int logInt =mStationList.indexOf(station);
+            int logInt = mStationList.indexOf(station);
             mStationList.removeItemAt(mStationList.indexOf(station));
             Toast.makeText(mActivity, mActivity.getString(R.string.toastalert_delete_successful), Toast.LENGTH_LONG).show();
         }

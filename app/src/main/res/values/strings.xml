@@ -92,6 +92,7 @@
     <string name="toastalert_stream_not_found">Transistor does not recognize this station. Please delete and add it again to the Home screen.</string>
     <string name="snackbar_request_storage_access">Transistor needs to be granted read permissions to be able access data from external storage.</string>
     <string name="snackbar_message_timer_set">Sleep timer set to</string>
+    <string name="toastalert_add_favorit_unsuccessful" translatable="false">Unable to change favorit status for station. Please try again later.</string>
 
     <!-- notification -->
     <string name="notification_play">Play</string>

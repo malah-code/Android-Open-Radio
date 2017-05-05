@@ -18,7 +18,9 @@ package org.y20k.transistor;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
@@ -38,11 +40,14 @@ public class CollectionAdapterViewHolder extends RecyclerView.ViewHolder impleme
     private final View mListItemLayout;
     private final SimpleDraweeView mStationImageView;
     private final TextView mStationNameView;
+    private final LinearLayout mLayoutCategoryView;
+    private final TextView mTxtCategoryView;
     private final TextView mStationDesciptionView;
     private final ImageView mPlaybackIndicator;
     private final ImageView mStationMenuView;
     private final FloatingActionButton mFabPlayButton;
     private final RatingBar mRatingBarView;
+    private  ImageButton mFavoritButton;
     private ClickListener mClickListener;
 
 
@@ -61,7 +66,10 @@ public class CollectionAdapterViewHolder extends RecyclerView.ViewHolder impleme
         mListItemLayout = itemView;
         mStationImageView = (SimpleDraweeView) itemView.findViewById(R.id.list_item_station_icon);
         mStationNameView = (TextView) itemView.findViewById(R.id.list_item_textview);
+        mLayoutCategoryView = (LinearLayout) itemView.findViewById(R.id.layoutFavorit);
+        mTxtCategoryView = (TextView) itemView.findViewById(R.id.txtFavorit);
         mRatingBarView = (RatingBar) itemView.findViewById(R.id.ratingBar);
+        mFavoritButton = (ImageButton) itemView.findViewById(R.id.player_item_favorit_button);
         mStationDesciptionView = (TextView) itemView.findViewById(R.id.list_item_description);
         mPlaybackIndicator = (ImageView) itemView.findViewById(R.id.list_item_playback_indicator);
         mStationMenuView = (ImageView) itemView.findViewById(R.id.list_item_more_button);
@@ -83,6 +91,15 @@ public class CollectionAdapterViewHolder extends RecyclerView.ViewHolder impleme
         return true;
     }
 
+    /* Getter for Layout Category */
+    public LinearLayout getLayoutCategoryView() {
+        return mLayoutCategoryView;
+    }
+    /* Getter for Txt Category */
+    public TextView getTxtCategoryView() {
+        return mTxtCategoryView;
+    }
+
     /* Getter for parent list item layout */
     public View getListItemLayout() {
         return mListItemLayout;
@@ -102,6 +119,11 @@ public class CollectionAdapterViewHolder extends RecyclerView.ViewHolder impleme
     /* Getter for station Rating Bar view */
     public RatingBar getRatingBarView() {
         return mRatingBarView;
+    }
+
+    /* Getter for station Favorit Button view */
+    public ImageButton getFavoritButtonView() {
+        return mFavoritButton;
     }
 
     /* Getter for station FAB Play Button view */

@@ -98,12 +98,22 @@ public class StationsDbHelper extends SQLiteOpenHelper {
         return db.update(TABLE_NAME, newValues, strFilter, null);
     }
 
-    //delete station from DB
+    //Change Rating Of station from DB
     public int ChangeRatingOfStation(long station_ID, int newRating) {
         SQLiteDatabase db = this.getWritableDatabase();
         //update db
         ContentValues newValues = new ContentValues();
         newValues.put(StationsDbContract.StationEntry.COLUMN_RATING, newRating);
+        String strFilter = StationsDbContract.StationEntry._ID + " = " + String.valueOf(station_ID);
+        return db.update(TABLE_NAME, newValues, strFilter, null);
+    }
+
+    //delete station from DB
+    public int ChangeIsFavouriteOfStation(long station_ID, int IsFavourite) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        //update db
+        ContentValues newValues = new ContentValues();
+        newValues.put(StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE, IsFavourite);
         String strFilter = StationsDbContract.StationEntry._ID + " = " + String.valueOf(station_ID);
         return db.update(TABLE_NAME, newValues, strFilter, null);
     }
@@ -149,7 +159,7 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                 StationsDbContract.StationEntry.COLUMN_THUMP_UP_STATUS
         };
         String sortOrder =
-                StationsDbContract.StationEntry.COLUMN_UNIQUE_ID + " DESC";
+                StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE + " DESC";// , " + StationsDbContract.StationEntry.COLUMN_CATEGORY + " ASC";
         cursor = db.query(
                 TABLE_NAME, // The table to query
                 projection,                                 // The columns to return
@@ -197,7 +207,7 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                 if(station.SMALL_IMAGE_PATH == null || station.SMALL_IMAGE_PATH.isEmpty()){
                     station.SMALL_IMAGE_PATH=station.IMAGE_PATH; //default value for small image if no image provided
                 }
-                station.IS_FAVOURITE = cursor.getString(
+                station.IS_FAVOURITE = cursor.getInt(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE));
                 station.THUMP_UP_STATUS = cursor.getString(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_THUMP_UP_STATUS));

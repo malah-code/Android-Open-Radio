@@ -73,7 +73,16 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Title.Inverse" />
 
             </LinearLayout>
-
+            <ImageButton
+                android:id="@+id/player_item_favorit_button"
+                style="@android:style/Widget.Holo.Light.ImageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:background="@android:color/transparent"
+                android:paddingEnd="4dp"
+                android:paddingStart="1dp"
+                android:tint="@color/linkColor"
+                app:srcCompat="@drawable/ic_favorite_black_24dp" />
             <ImageButton
                 android:id="@+id/player_item_more_button"
                 android:layout_width="wrap_content"
@@ -82,9 +91,7 @@
                 android:contentDescription="@string/descr_overflow_button"
                 android:paddingEnd="2dp"
                 android:paddingStart="4dp"
-                android:visibility="gone"
                 app:srcCompat="@drawable/ic_more_vert_white_24dp" />
-
         </LinearLayout>
 
         <RatingBar

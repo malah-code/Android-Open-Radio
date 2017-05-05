@@ -140,9 +140,9 @@ public final class Station implements Comparable<Station>, Parcelable {
     public String HtmlDescription;
 
     /**
-     * Station IS FAVOURITE (user favourite) (feature not used yet)
+     * Station IS FAVOURITE (user favourite)
      */
-    public String IS_FAVOURITE;
+    public int IS_FAVOURITE;
 
     /**
      * Station is Thump Up by user (not used yet) (feature not used yet)
@@ -543,7 +543,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         CATEGORY = in.readString();
         HtmlDescription = in.readString();
         SMALL_IMAGE_PATH = in.readString();
-        IS_FAVOURITE = in.readString();
+        IS_FAVOURITE = in.readInt();
         THUMP_UP_STATUS = in.readString();
 
         LogHelper.v(LOG_TAG, "Station re-created from parcel. State of playback is: " + mPlayback);
@@ -568,7 +568,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         dest.writeString(CATEGORY);
         dest.writeString(HtmlDescription);
         dest.writeString(SMALL_IMAGE_PATH);
-        dest.writeString(IS_FAVOURITE);
+        dest.writeInt(IS_FAVOURITE);
         dest.writeString(THUMP_UP_STATUS);
     }
 
@@ -1117,6 +1117,7 @@ public final class Station implements Comparable<Station>, Parcelable {
             values.put(StationsDbContract.StationEntry.COLUMN_URI, stationItem.StreamURI);
             values.put(StationsDbContract.StationEntry.COLUMN_CONTENT_TYPE, stationItem.CONTENT_TYPE);
             values.put(StationsDbContract.StationEntry.COLUMN_RATING, stationItem.RATING);
+            values.put(StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE, 0); //default
             values.put(StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS, stationItem.COMMA_SEPARATED_TAGS);
             values.put(StationsDbContract.StationEntry.COLUMN_CATEGORY, stationItem.CATEGORY);
             values.put(StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION, stationItem.HtmlDescription);

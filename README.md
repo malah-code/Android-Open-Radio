@@ -3,11 +3,8 @@ README
 <img width="200" border="1"   src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-010527.png"> - <img  width="200"  src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-010842.png"> - <img width="200"  src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-010905.png"> - <img width="200"  src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-010934.png"> - <img width="200"   src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-010956.png"> - <img width="200"   src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-011016.png"> - <img width="200"  src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-011039.png"> - <img width="200" src="https://raw.githubusercontent.com/malah-code/Android-Open-Radio/Enhancements-v1/screenshots/device-2017-05-03-011102.png">
  
  
-	
 Android-Open-Radio - Radio App for Android
 ----------------------------------
-
-**Version 3.1.1 (Beta) **
 
 Android-Open-Radio is a bare bones app for listening to radio programs over the internet. The app stores stations as files on your device's external storage. It currently understands streams encoded in MP3 and OGG.
 
@@ -17,9 +14,16 @@ Android-Open-Radio is free software. It is published under the [MIT open source 
 
 This open source application based on (y20k/transistor) "https://github.com/y20k/transistor".
 
-What's new in Android-Open-Radio
+New in 3.1.2 (Beta) (Build 36)
+------------------------------
+- Add Favorit functionality to listing and detail pages.
+- Add basic categorization to the listing page.
+- Prepare db new field for tags, to be ready for next feature of search by tags.
+- And also, some code fixes and enhancements. 
+
+New in 3.1.1 (Beta) (Build 35)
 -----------------------------
- - Use DB with SQLITE as main storage of the application. this will reduce the dependancy of files, and open application for features that we will have with SQLITE that we can add it to the application later easily, like Sorting,Filer,Grouping,relation with other tables like categories/rating/favourits, add easily add more station metadata anytime, and many more.
+- Use DB with SQLITE as main storage of the application. this will reduce the dependancy of files, and open application for features that we will have with SQLITE that we can add it to the application later easily, like Sorting,Filer,Grouping,relation with other tables like categories/rating/favourits, add easily add more station metadata anytime, and many more.
 - Adding more metadata to stations (currently no way to change all metadata throw UI, we can only import xml with all metadata of channel, we may add editing later in next versions).
 - new station rating modules (currently it's local rating only, not sync to central rating, may be later in next versions)
 - Using Facebook fresco image viewer (SimpleDraweeView) with it's great loading features

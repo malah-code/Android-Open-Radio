@@ -46,6 +46,7 @@ public class TransistorKeys {
     public static final String EXTRA_STATION_DB_ID = "STATION_DB_ID";
     public static final String EXTRA_LAST_STATION = "LAST_STATION";
     public static final String EXTRA_STATION_NEW_NAME = "STATION_NEW_NAME";
+    public static final String EXTRA_STATION_FAVORIT_VALUE= "STATION_NEW_FAVORIT_VALUE";
     public static final String EXTRA_STREAM_URI = "STREAM_URI";
     public static final String EXTRA_TIMER_DURATION = "TIMER_DURATION";
     public static final String EXTRA_TIMER_REMAINING = "TIMER_REMAINING";
@@ -87,6 +88,7 @@ public class TransistorKeys {
     public static final int STATION_DELETED = 3;
     public static final int STATION_CHANGED_IMAGE = 4;
     public static final int STATION_CHANGED_RATING = 5;
+    public static final int STATION_CHANGED_FAVORIT = 6;
 
     public static final int PLAYBACK_LOADING_STATION = 1;
     public static final int PLAYBACK_STARTED = 2;
