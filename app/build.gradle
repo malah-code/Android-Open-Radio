@@ -50,6 +50,9 @@ dependencies {
 
     // Single target that includes all FirebaseUI libraries above
     //compile 'com.firebaseui:firebase-ui:1.2.0'
+
+    //markdown
+    compile 'com.commit451:bypasses:1.0.1'
 }
 
 

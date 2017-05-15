@@ -59,7 +59,7 @@ import java.util.Objects;
 /**
  * CollectionAdapter class
  */
-public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapterViewHolder> {
+public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapterViewHolder> {
 
     /* Define log tag */
     private static final String LOG_TAG = CollectionAdapter.class.getSimpleName();
@@ -402,10 +402,15 @@ public final class CollectionAdapter extends RecyclerView.Adapter<CollectionAdap
 
         //clear mStationList in case of having any record
         mStationList.clear();
+        FillListWithData(mActivity, mStationList);
 
+
+    }
+
+    public void FillListWithData(Activity mActivity, SortedList<Station> mStationList) {
         //Get from DB
         StationsDbHelper mDbHelper = new StationsDbHelper(mActivity);
-        mDbHelper.FillListOfAllStations(mStationList);
+        mDbHelper.FillListOfAllStations(mStationList, null);
     }
 
 

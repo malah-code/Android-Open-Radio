@@ -36,13 +36,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.text.Html;
 import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.webkit.WebView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -76,6 +76,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import in.uncod.android.bypass.Bypass;
+
 
 /**
  * PlayerActivityFragment class
@@ -96,6 +98,7 @@ public final class PlayerActivityFragment extends Fragment {
     private RatingBar mRatingBarView;
     private TextView mStationMetadataView;
     private TextView mtxtDescriptionView;
+    private TextView mtxtMarkdownDescriptionView;
     private SimpleDraweeView mStationImageView;
     private ImageButton mStationMenuView;
     private ImageView mPlaybackIndicator;
@@ -111,9 +114,8 @@ public final class PlayerActivityFragment extends Fragment {
     private int mStationRating;
     private int mStationFavourit;
     private String mStationDescription;
-    private String mStationHtmlDesciption;
-    private WebView mWbStationWebViewView;
-    private CardView mCrdHtmlDescriptionView;
+    private String mStationMarkdownDesciption;
+    private CardView mCrdMarkdownDescriptionView;
     private RelativeLayout mRelLayLargeButtonPlayView;
 
     /* Constructor (default) */
@@ -158,7 +160,7 @@ public final class PlayerActivityFragment extends Fragment {
             if (mStation != null) {
                 mStationName = mStation.TITLE;
                 mStationDescription = mStation.DESCRIPTION;
-                mStationHtmlDesciption = mStation.HtmlDescription;
+                mStationMarkdownDesciption = mStation.MarkdownDescription;
                 mStationRating = mStation.RATING;
                 mStationFavourit = mStation.IS_FAVOURITE;
                 mStreamUri = mStation.getStreamUri().toString();
@@ -185,6 +187,7 @@ public final class PlayerActivityFragment extends Fragment {
         // find views for station name and image and playback indicator
         mStationNameView = (TextView) mRootView.findViewById(R.id.player_textview_stationname);
         mtxtDescriptionView = (TextView) mRootView.findViewById(R.id.txtDescription);
+        mtxtMarkdownDescriptionView = (TextView) mRootView.findViewById(R.id.txtMarkdownDescription);
         mRatingBarView = (RatingBar) mRootView.findViewById(R.id.ratingBar);
 
         mStationMetadataView = (TextView) mRootView.findViewById(R.id.player_textview_station_metadata);
@@ -194,8 +197,7 @@ public final class PlayerActivityFragment extends Fragment {
 
         mStationImageView = (SimpleDraweeView) mRootView.findViewById(R.id.player_imageview_station_icon);
         mStationMenuView = (ImageButton) mRootView.findViewById(R.id.player_item_more_button);
-        mWbStationWebViewView = (WebView) mRootView.findViewById(R.id.wbStationWebView);
-        mCrdHtmlDescriptionView = (CardView) mRootView.findViewById(R.id.crdHtmlDescription);
+        mCrdMarkdownDescriptionView = (CardView) mRootView.findViewById(R.id.crdMarkdownDescription);
         mRelLayLargeButtonPlayView = (RelativeLayout) mRootView.findViewById(R.id.relLayLargeButtonPlay);
     }
 
@@ -238,23 +240,6 @@ public final class PlayerActivityFragment extends Fragment {
         mStationNameView.setText(mStationName);
         mtxtDescriptionView.setText(mStationDescription);
 
-        //set HTML in webview if mStationHtmlDesciption != ""
-        if (mStationHtmlDesciption != null && !mStationHtmlDesciption.isEmpty()) {
-            //display HTML inside web view control
-            final String mimeType = "text/html";
-            final String encoding = "UTF-8";
-            //Load the file from assets folder - don't forget to INCLUDE the extension
-            String webStyleDefaults = "";
-            try {
-                webStyleDefaults = LoadFile("webViewStyleDefaults.html");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mWbStationWebViewView.loadDataWithBaseURL("", webStyleDefaults + mStationHtmlDesciption, mimeType, encoding, "");
-        } else {
-            //hide web view if no HTML description
-            mCrdHtmlDescriptionView.setVisibility(View.GONE);
-        }
         mRatingBarView.setRating(mStationRating);
         mRatingBarView.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
@@ -338,6 +323,9 @@ public final class PlayerActivityFragment extends Fragment {
                 animateFovoritVisual(mActivity, (mStation.IS_FAVOURITE == 0) ? 1 : 0);
             }
         });
+
+
+
         return mRootView;
     }
 
@@ -423,6 +411,17 @@ public final class PlayerActivityFragment extends Fragment {
         // set up button symbol and playback indicator
         setVisualState();
 
+        //set Markdown Description
+        if (mStationMarkdownDesciption != null && !mStationMarkdownDesciption.isEmpty()) {
+            mCrdMarkdownDescriptionView.setVisibility(View.VISIBLE);
+            Bypass bypass = new Bypass(mActivity);
+            CharSequence string = bypass.markdownToSpannable(mStationMarkdownDesciption);
+            mtxtMarkdownDescriptionView.setText(string);
+              mtxtMarkdownDescriptionView.setMovementMethod(LinkMovementMethod.getInstance());
+        } else {
+            //hide card if no StationMarkdownDesciption
+            mCrdMarkdownDescriptionView.setVisibility(View.GONE);
+        }
     }
 
 

@@ -148,6 +148,7 @@
     <orderEntry type="library" exported="" name="twitter-text-1.13.0" level="project" />
     <orderEntry type="library" exported="" name="okhttp-3.2.0" level="project" />
     <orderEntry type="library" exported="" name="tweet-composer-2.3.0" level="project" />
+    <orderEntry type="library" exported="" name="bypasses-1.0.1" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-25.1.1" level="project" />
     <orderEntry type="library" exported="" name="twitter-core-2.3.0" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-25.1.1" level="project" />

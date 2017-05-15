@@ -61,7 +61,7 @@ Xml file should contains nelow metadata :
 * content_type : Station CONTENT TYPE (value auto detected / or can be read from xml metadata - if it's imported using xml file)
 * rating : Station RATING
 * category : Station CATEGORY
-* html_description : (HtmlDescription) : Station Html Description , with HTML formal, it will be visible inside in-app WebView with default header\styles located in \assets\webViewStyleDefaults.html
+* markdown_description : (markdown Description) : Station markdown Description , with markdown formal, it will be visible inside in-app in detail view card.
  
 # Sample Xml file
             <channels>
@@ -70,7 +70,7 @@ Xml file should contains nelow metadata :
                                     <title>BBC Arabic</title>
                                     <subtitle>BBC Arabic Main Channel</subtitle>
                                     <description>This is description of BBC Arabic Main Channel</description>
-                                    <html_description>...</html_description>
+                                    <markdown_description>...</markdown_description>
                                     <small_image_URL>
                                     http://www.liveonlineradio.net/wp-content/uploads/2011/06/BBC-Arabic1.jpg
                                     </small_image_URL>

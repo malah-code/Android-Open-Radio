@@ -137,7 +137,7 @@ public final class Station implements Comparable<Station>, Parcelable {
      * Station Html Description , with HTML formal, it will be visible inside in-app WebView
      * with default header\styles located in \assets\webViewStyleDefaults.html
      */
-    public String HtmlDescription;
+    public String MarkdownDescription;
 
     /**
      * Station IS FAVOURITE (user favourite)
@@ -362,7 +362,7 @@ public final class Station implements Comparable<Station>, Parcelable {
 
                     Station stationItem = new Station();
                     //reset some variables
-                    stationItem.HtmlDescription = "";
+                    stationItem.MarkdownDescription = "";
 
                     while (parser.next() != XmlPullParser.END_TAG) {
                         if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -399,9 +399,9 @@ public final class Station implements Comparable<Station>, Parcelable {
                         } else if (tagName.equals("category")) {
                             parser.require(XmlPullParser.START_TAG, null, "category");
                             stationItem.CATEGORY = readXmlElementText(parser);
-                        } else if (tagName.equals("html_description")) {
-                            parser.require(XmlPullParser.START_TAG, null, "html_description");
-                            stationItem.HtmlDescription = readXmlElementText(parser);
+                        } else if (tagName.equals("markdown_description")) {
+                            parser.require(XmlPullParser.START_TAG, null, "markdown_description");
+                            stationItem.MarkdownDescription = readXmlElementText(parser);
                         } else if (tagName.equals("small_image_URL")) {
                             parser.require(XmlPullParser.START_TAG, null, "small_image_URL");
                             stationItem.SMALL_IMAGE_PATH = readXmlElementText(parser);
@@ -541,7 +541,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         RATING = in.readInt();
         COMMA_SEPARATED_TAGS = in.readString();
         CATEGORY = in.readString();
-        HtmlDescription = in.readString();
+        MarkdownDescription = in.readString();
         SMALL_IMAGE_PATH = in.readString();
         IS_FAVOURITE = in.readInt();
         THUMP_UP_STATUS = in.readString();
@@ -566,7 +566,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         dest.writeInt(RATING);
         dest.writeString(COMMA_SEPARATED_TAGS);
         dest.writeString(CATEGORY);
-        dest.writeString(HtmlDescription);
+        dest.writeString(MarkdownDescription);
         dest.writeString(SMALL_IMAGE_PATH);
         dest.writeInt(IS_FAVOURITE);
         dest.writeString(THUMP_UP_STATUS);
@@ -1120,7 +1120,7 @@ public final class Station implements Comparable<Station>, Parcelable {
             values.put(StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE, 0); //default
             values.put(StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS, stationItem.COMMA_SEPARATED_TAGS);
             values.put(StationsDbContract.StationEntry.COLUMN_CATEGORY, stationItem.CATEGORY);
-            values.put(StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION, stationItem.HtmlDescription);
+            values.put(StationsDbContract.StationEntry.COLUMN_MARKDOWN_DESCRIPTION, stationItem.MarkdownDescription);
             values.put(StationsDbContract.StationEntry.COLUMN_SMALL_IMAGE_URL, stationItem.SMALL_IMAGE_PATH);
 
             // Insert the new row, returning the primary key value of the new row

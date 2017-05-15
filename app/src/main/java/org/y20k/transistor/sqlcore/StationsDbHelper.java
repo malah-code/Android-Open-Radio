@@ -30,7 +30,7 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                     StationsDbContract.StationEntry.COLUMN_UNIQUE_ID + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_NAME_TITLE + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_CATEGORY + " TEXT," +
-                    StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION + " TEXT," +
+                    StationsDbContract.StationEntry.COLUMN_MARKDOWN_DESCRIPTION + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_SMALL_IMAGE_URL + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_IMAGE_PATH + " TEXT," +
                     StationsDbContract.StationEntry.COLUMN_IMAGE_FILE_NAME + " TEXT," +
@@ -119,17 +119,19 @@ public class StationsDbHelper extends SQLiteOpenHelper {
     }
 
     //custom method
-    public void FillListOfAllStations(SortedList<Station> mStationListTemp) {
+    public void FillListOfAllStations(SortedList<Station> mStationListTemp, Integer isFavorite) {
         ArrayList<Station> mStationListArr = new ArrayList<>();
-        FillListOfAllStationsBase(mStationListArr);
+        FillListOfAllStationsBase(mStationListArr,isFavorite);
         for (int i = 0; i < mStationListArr.size(); i++) {
             mStationListTemp.add(mStationListArr.get(i));
         }
     }
+
     public void FillListOfAllStations(ArrayList<Station> mStationListTemp) {
-        FillListOfAllStationsBase(mStationListTemp);
+        FillListOfAllStationsBase(mStationListTemp, null);
     }
-    private void FillListOfAllStationsBase(ArrayList<Station> mStationListTemp) {
+
+    private void FillListOfAllStationsBase(ArrayList<Station> mStationListTemp, Integer isFavorite) {
         Cursor cursor;
         //get stations from DB
         // Gets the data repository in write mode
@@ -137,7 +139,9 @@ public class StationsDbHelper extends SQLiteOpenHelper {
 
         // Filter results WHERE "title" = 'My Title'
         String selection = StationsDbContract.StationEntry.COLUMN_URI + " IS NOT NULL AND "
-                + StationsDbContract.StationEntry.COLUMN_URI + "  != \"\"";
+                + StationsDbContract.StationEntry.COLUMN_URI + "  != \"\""
+                + ((isFavorite!=null)? " and " + StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE + "  == " + isFavorite  : "")
+                ;
 
         String[] projection = {
                 StationsDbContract.StationEntry._ID,
@@ -153,7 +157,7 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                 StationsDbContract.StationEntry.COLUMN_RATING,
                 StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS,
                 StationsDbContract.StationEntry.COLUMN_CATEGORY,
-                StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION,
+                StationsDbContract.StationEntry.COLUMN_MARKDOWN_DESCRIPTION,
                 StationsDbContract.StationEntry.COLUMN_SMALL_IMAGE_URL,
                 StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE,
                 StationsDbContract.StationEntry.COLUMN_THUMP_UP_STATUS
@@ -200,12 +204,12 @@ public class StationsDbHelper extends SQLiteOpenHelper {
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_COMMA_SEPARATED_TAGS));
                 station.CATEGORY = cursor.getString(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_CATEGORY));
-                station.HtmlDescription = cursor.getString(
-                        cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_HTML_DESCRIPTION));
+                station.MarkdownDescription = cursor.getString(
+                        cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_MARKDOWN_DESCRIPTION));
                 station.SMALL_IMAGE_PATH = cursor.getString(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_SMALL_IMAGE_URL));
-                if(station.SMALL_IMAGE_PATH == null || station.SMALL_IMAGE_PATH.isEmpty()){
-                    station.SMALL_IMAGE_PATH=station.IMAGE_PATH; //default value for small image if no image provided
+                if (station.SMALL_IMAGE_PATH == null || station.SMALL_IMAGE_PATH.isEmpty()) {
+                    station.SMALL_IMAGE_PATH = station.IMAGE_PATH; //default value for small image if no image provided
                 }
                 station.IS_FAVOURITE = cursor.getInt(
                         cursor.getColumnIndexOrThrow(StationsDbContract.StationEntry.COLUMN_IS_FAVOURITE));
