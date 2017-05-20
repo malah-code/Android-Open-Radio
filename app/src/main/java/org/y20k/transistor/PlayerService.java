@@ -757,7 +757,7 @@ public final class PlayerService extends MediaBrowserServiceCompat implements
                 connection.connect();
                 contentType = connection.getContentType();
                 LogHelper.v(LOG_TAG, "MIME type of stream: " + contentType);
-                if (contentType.contains("application/vnd.apple.mpegurl") || contentType.contains("application/x-mpegurl")) {
+                if (contentType.contains("application/vnd.apple.mpegurl") || contentType.contains("application/x-mpegurl")) { // || contentType.contains("audio/mpeg")
                     LogHelper.v(LOG_TAG, "HTTP Live Streaming detected.");
                     return true;
                 } else {
@@ -781,13 +781,17 @@ public final class PlayerService extends MediaBrowserServiceCompat implements
             mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK); // needs android.permission.WAKE_LOCK
 
             try {
+                //mMediaPlayer.setDataSource(mStreamUri);
                 if (result) {
                     // stream is HLS - do not extract metadata
                     mMediaPlayer.setDataSource(mStreamUri);
                 } else {
                     // normal stream - extract metadata
-                    mMetadataHelper = new MetadataHelper(getApplicationContext(), mStation);
-                    mMediaPlayer.setDataSource(mMetadataHelper.getShoutcastProxy());
+                    //mMetadataHelper = new MetadataHelper(getApplicationContext(), mStation);
+                    MetadataHelper.prepareMetadata(mStreamUri, mStation, getApplicationContext());
+                    mMediaPlayer.setDataSource(mStreamUri);
+
+                    //mMediaPlayer.setDataSource(mMetadataHelper.getShoutcastProxy());
                 }
 
                 mMediaPlayer.prepareAsync();

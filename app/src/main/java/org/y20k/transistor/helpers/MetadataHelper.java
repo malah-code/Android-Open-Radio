@@ -2,10 +2,10 @@
  * MetadataHelper.java
  * Implements the MetadataHelper class
  * A MetadataHelper pulls Shoutcast metadata (artist, title, etc.) from a given audio stream
- *
+ * <p>
  * This file is part of
  * TRANSISTOR - Radio App for Android
- *
+ * <p>
  * Copyright (c) 2015-17 - Y20K.org
  * Licensed under the MIT-License
  * http://opensource.org/licenses/MIT
@@ -50,7 +50,7 @@ public class MetadataHelper {
     private String mShoutcastProxy;
     private Socket mProxyConnection = null;
     private boolean mProxyRunning = false;
-
+    private static Thread metaDataThread;
 
     /* Constructor */
     public MetadataHelper(Context context, Station station) {
@@ -98,7 +98,7 @@ public class MetadataHelper {
 
                     try {
                         if (connection != null) {
-                            ((HttpURLConnection)connection).disconnect();
+                            ((HttpURLConnection) connection).disconnect();
                         }
                     } catch (Exception ee) {
                         LogHelper.e(LOG_TAG, "Error: Unable to disconnect HttpURLConnection. (" + ee + ")");
@@ -154,7 +154,7 @@ public class MetadataHelper {
         InputStream in = connection.getInputStream();
 
         OutputStream out = proxy.getOutputStream();
-        out.write( ("HTTP/1.0 200 OK\r\n" +
+        out.write(("HTTP/1.0 200 OK\r\n" +
                 "Pragma: no-cache\r\n" +
                 "Content-Type: " + connection.getContentType() +
                 "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
@@ -214,12 +214,130 @@ public class MetadataHelper {
                 total = 0;
                 String[] metadata = new String(buf, 0, metadataSize, StandardCharsets.UTF_8).split(";");
                 for (String s : metadata) {
-                    if (s.indexOf(TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER) == 0 && s.length() >= TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER.length() + 1) {
+                    if (s.indexOf(TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER) == 0 &&
+                            s.length() >= TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER.length() + 1) {
                         handleMetadataString(s.substring(TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER.length(), s.length() - 1));
+                        // break;
                     }
                 }
             }
         }
+    }
+
+
+    /* Extract station metadata from URL connection */
+    public static void prepareMetadata(final String mStreamUri, final Station mStation, final Context mContext) throws IOException {
+        metaDataThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    URLConnection connection = new URL(mStreamUri).openConnection();
+                    connection.setConnectTimeout(5000);
+                    connection.setReadTimeout(5000);
+                    connection.setRequestProperty("Icy-MetaData", "1");
+                    connection.connect();
+
+                    InputStream in = connection.getInputStream();
+
+                    byte buf[] = new byte[16384]; // one second of 128kbit stream
+                    int count = 0;
+                    int total = 0;
+                    int metadataSize = 0;
+                    final int metadataOffset = connection.getHeaderFieldInt("icy-metaint", 0);
+                    int bitRate = Math.max(connection.getHeaderFieldInt("icy-br", 128), 32);
+                    LogHelper.v(LOG_TAG, "createProxyConnection: connected, icy-metaint " + metadataOffset + " icy-br " + bitRate);
+                    Thread thisThread = Thread.currentThread();
+                    int thisThreadCounter = 0;
+                    while (true && metaDataThread == thisThread) {
+                        if (thisThreadCounter > 20) { //only try 20 times and terminate thread to be sure getting metadata
+                            LogHelper.v(LOG_TAG, "thisThreadCounter: Upper Break at thisThreadCounter=" + thisThreadCounter);
+                            break;
+                        }
+                        thisThreadCounter++;
+                        count = Math.min(in.available(), buf.length);
+                        if (count <= 0) {
+                            count = Math.min(bitRate * 64, buf.length); // buffer half-second of stream data
+                        }
+                        if (metadataOffset > 0) {
+                            count = Math.min(count, metadataOffset - total);
+                        }
+
+                        count = in.read(buf, 0, count);
+                        if (count == 0) {
+                            continue;
+                        }
+                        if (count < 0) {
+                            LogHelper.v(LOG_TAG, "thisThreadCounter: Break at -count < 0- thisThreadCounter=" + thisThreadCounter);
+                            break;
+                        }
+                        total += count;
+                        if (metadataOffset > 0 && total >= metadataOffset) {
+                            // read metadata
+                            total = 0;
+                            count = in.read();
+                            if (count < 0) {
+                                LogHelper.v(LOG_TAG, "thisThreadCounter: Break2 at -count < 0- thisThreadCounter=" + thisThreadCounter);
+                                break;
+                            }
+                            count *= 16;
+                            metadataSize = count;
+                            if (metadataSize == 0) {
+                                continue;
+                            }
+                            // maximum metadata length is 4080 bytes
+                            total = 0;
+                            while (total < metadataSize) {
+                                count = in.read(buf, total, count);
+                                if (count < 0) {
+                                    LogHelper.v(LOG_TAG, "thisThreadCounter: Break3 at -count < 0- thisThreadCounter=" + thisThreadCounter);
+                                    break;
+                                }
+                                if (count == 0) {
+                                    continue;
+                                }
+                                total += count;
+                                count = metadataSize - total;
+                            }
+                            total = 0;
+                            String[] metadata = new String(buf, 0, metadataSize, StandardCharsets.UTF_8).split(";");
+                            for (String s : metadata) {
+                                if (s.indexOf(TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER) == 0 &&
+                                        s.length() >= TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER.length() + 1) {
+                                    //handleMetadataString(s.substring(TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER.length(), s.length() - 1));
+                                    String metadata2 = s.substring(TransistorKeys.SHOUTCAST_STREAM_TITLE_HEADER.length(), s.length() - 1);
+                                    if (metadata2 != null && metadata2.length() > 0) {
+                                        // send local broadcast
+                                        Intent i = new Intent();
+                                        i.setAction(TransistorKeys.ACTION_METADATA_CHANGED);
+                                        i.putExtra(TransistorKeys.EXTRA_METADATA, metadata2);
+                                        i.putExtra(TransistorKeys.EXTRA_STATION, mStation);
+                                        LocalBroadcastManager.getInstance(mContext).sendBroadcast(i);
+
+                                        // save metadata to shared preferences
+                                        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mContext);
+                                        SharedPreferences.Editor editor = settings.edit();
+                                        editor.putString(TransistorKeys.PREF_STATION_METADATA, metadata2);
+                                        editor.apply();
+
+                                        //done getting the metadata
+                                        LogHelper.v(LOG_TAG, "thisThreadCounter: Lower Break at thisThreadCounter=" + thisThreadCounter);
+                                        break;
+                                    }
+                                    // break;
+                                }
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    LogHelper.e(LOG_TAG, e.getMessage());
+                }
+            }
+
+
+        });
+        metaDataThread.start();
     }
 
 
@@ -256,7 +374,7 @@ public class MetadataHelper {
             while (mProxyRunning) {
                 Thread.sleep(50); // Wait for thread to finish
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             LogHelper.e(LOG_TAG, "Unable to close proxy connection. Error: " + e);
         }
 
