@@ -14,6 +14,12 @@ Android-Open-Radio is free software. It is published under the [MIT open source 
 
 This open source application based on (y20k/transistor) "https://github.com/y20k/transistor".
 
+New in 3.1.3 (Beta) (Build 39)
+------------------------------
+- Add search functionality to search title and subtitle.
+- Add Default XML source for radio stations. if found it will load this XML first.
+- Fix UI issues. 
+
 New in 3.1.2 (Beta) (Build 36)
 ------------------------------
 - Add Favorit functionality to listing and detail pages.
@@ -103,6 +109,12 @@ Xml file should contains nelow metadata :
                                     <category>news</category>
                         </entry>
             </channels>
+
+
+### Default XML source
+
+You will find file in the folder "Res\raw\starter_stations.xml", this is the default XML source file, onLoad of the application first time, it will load stations from this file, with it's images.
+ This is not mandatory file, but it should be exist even if t's empty.
 
 ### How to play back a radio station?
 Tap the big Play button ;)
