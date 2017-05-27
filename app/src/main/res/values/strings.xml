@@ -153,6 +153,8 @@
     <string name="change_station_photo" translatable="false">Change Station Photo</string>
     <string name="grid_view" translatable="false">Grid View</string>
     <string name="list_view" translatable="false">List View</string>
+    <string name="search">Search</string>
+    <string name="search_hint">Search for station</string>
 
     <!-- 
     +++ IMPORTANT NOTE +++

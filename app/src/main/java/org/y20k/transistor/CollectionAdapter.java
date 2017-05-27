@@ -318,7 +318,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapterVie
                 } else {
                     // click in tablet mode
                     handleSingleClick(pos, holder);
-                    notifyDataSetChanged();
+                    notifyDataSetChanged(); //todo:tarek review why this line here
                 }
             }
         });
@@ -415,7 +415,7 @@ public class CollectionAdapter extends RecyclerView.Adapter<CollectionAdapterVie
 
 
     /* Handles click on list item */
-    private void handleSingleClick(int position, CollectionAdapterViewHolder theHolder) {
+    public void handleSingleClick(int position, CollectionAdapterViewHolder theHolder) {
 
         Station station = mStationList.get(position);
 

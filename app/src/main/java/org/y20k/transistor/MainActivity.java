@@ -2,10 +2,10 @@
  * MainActivity.java
  * Implements the app's main activity
  * The main activity sets up the main view end inflates a menu bar menu
- *
+ * <p>
  * This file is part of
  * TRANSISTOR - Radio App for Android
- *
+ * <p>
  * Copyright (c) 2015-17 - Y20K.org
  * Licensed under the MIT-License
  * http://opensource.org/licenses/MIT
@@ -15,6 +15,7 @@ package org.y20k.transistor;
 
 import android.annotation.TargetApi;
 import android.app.Fragment;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +26,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -32,6 +34,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -63,7 +66,7 @@ import java.util.Arrays;
 /**
  * MainActivity class
  */
-public final class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener  {
+public final class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     /* Define log tag */
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
@@ -79,6 +82,8 @@ public final class MainActivity extends AppCompatActivity  implements Navigation
     private FirebaseAuth mAuth;
     private LinearLayout layoutLogin;
     private LinearLayout layoutLoggedIn;
+    private CoordinatorLayout coordinatorLayout;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +121,11 @@ public final class MainActivity extends AppCompatActivity  implements Navigation
         Button btnLogin = (Button) navigationView.getHeaderView(0).findViewById(R.id.btnLogin);
         layoutLogin = (LinearLayout) navigationView.getHeaderView(0).findViewById(R.id.layoutLogin);
         layoutLoggedIn = (LinearLayout) navigationView.getHeaderView(0).findViewById(R.id.layoutLoggedIn);
-        mAuth= FirebaseAuth.getInstance();
+
+        //coordinatorLayout
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        mAuth = FirebaseAuth.getInstance();
         //layout
         if (mAuth.getCurrentUser() != null) {
             // already signed in
@@ -146,6 +155,8 @@ public final class MainActivity extends AppCompatActivity  implements Navigation
             }
         });
 
+        //for search
+        handleIntent(getIntent());
     }
 
 
@@ -218,15 +229,48 @@ public final class MainActivity extends AppCompatActivity  implements Navigation
         super.onNewIntent(intent);
         // activity opened for second time set intent to new intent
         setIntent(intent);
+
+        //for search
+        handleIntent(intent);
     }
 
+    //for search
+    private void handleIntent(Intent intent) {
+
+//        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+//            // Handle the normal search query case
+//            String query = intent.getStringExtra(SearchManager.QUERY);
+//        } else if (searchSuggestIntentAction.equals(intent.getAction())) {
+//            // Handle a suggestions click (because the suggestions all use ACTION_VIEW)
+//            String data = intent.getDataString();
+//            String data2 = intent.getDataString();
+//        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main_actionbar, menu);
+
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView =
+                (SearchView) menu.findItem(R.id.menu_search).getActionView();
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(getComponentName()));
+
+
         return super.onCreateOptionsMenu(menu);
+    }
+
+    public void ClearSearch() {
+        if (searchView != null) {
+            searchView.setQuery("", false);
+            searchView.clearFocus();
+            searchView.setIconified(true);
+        }
     }
 
 
@@ -286,7 +330,7 @@ public final class MainActivity extends AppCompatActivity  implements Navigation
         Uri photoUrl = currentUser.getPhotoUrl();
 
         //set round icon
-        if(photoUrl!=null) {
+        if (photoUrl != null) {
             int color = ContextCompat.getColor(this, R.color.colorPrimary);
             RoundingParams roundingParams = RoundingParams.fromCornersRadius(5f);
             roundingParams.setBorder(color, 1.0f);
@@ -358,10 +402,10 @@ public final class MainActivity extends AppCompatActivity  implements Navigation
         LocalBroadcastManager.getInstance(this).registerReceiver(mCollectionChangedReceiver, collectionChangedIntentFilter);
     }
 
-//remove fragment if delete all stations
+    //remove fragment if delete all stations
     public void removePlayFragment() {
         Fragment fragment = getFragmentManager().findFragmentByTag(TransistorKeys.PLAYER_FRAGMENT_TAG);
-        if(fragment!=null) {
+        if (fragment != null) {
             getFragmentManager().beginTransaction().remove(fragment).commit();
         }
     }

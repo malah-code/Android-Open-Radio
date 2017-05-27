@@ -12,10 +12,11 @@ android {
         versionCode 38
         versionName "3.1.2 (Beta)"
         vectorDrawables.useSupportLibrary = true
+        manifestPlaceholders = [HOCKEYAPP_APP_ID: "2b8994e7a60b485dad0a5507ceb05c01"]
     }
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+//            applicationIdSuffix ".debug"
             buildConfigField "boolean", "isDebug", "true"
         }
         release {
@@ -42,6 +43,9 @@ dependencies {
     // FirebaseUI Database only
     //compile 'com.firebaseui:firebase-ui-database:1.2.0'
 
+    // Firebase Crash Reporting
+    compile "com.google.firebase:firebase-crash:$firebaseVersion"
+
     // FirebaseUI Auth only
     compile "com.firebaseui:firebase-ui-auth:$firebaseUIVersion"
 
@@ -53,6 +57,8 @@ dependencies {
 
     //markdown
     compile 'com.commit451:bypasses:1.0.1'
+
+
 }
 
 

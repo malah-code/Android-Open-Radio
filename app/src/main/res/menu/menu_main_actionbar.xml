@@ -4,6 +4,12 @@
     tools:context=".MainActivity">
 
     <item
+        android:id="@+id/menu_search"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/search"
+        app:showAsAction="collapseActionView|ifRoom" />
+    <item
         android:id="@+id/menu_timer"
         android:icon="@drawable/ic_timer_white_24dp"
         android:title="@string/menu_timer"

@@ -6,7 +6,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layoutDirection="ltr">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -70,6 +71,7 @@
                     android:paddingStart="6dp"
                     android:singleLine="true"
                     android:text="@string/descr_station_name_example"
+                    android:textAlignment="viewStart"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title.Inverse" />
 
             </LinearLayout>
@@ -83,6 +85,7 @@
                 android:paddingStart="1dp"
                 android:tint="@color/linkColor"
                 app:srcCompat="@drawable/ic_favorite_black_24dp" />
+
             <ImageButton
                 android:id="@+id/player_item_more_button"
                 android:layout_width="wrap_content"
@@ -91,6 +94,7 @@
                 android:contentDescription="@string/descr_overflow_button"
                 android:paddingEnd="2dp"
                 android:paddingStart="4dp"
+                android:visibility="gone"
                 app:srcCompat="@drawable/ic_more_vert_white_24dp" />
         </LinearLayout>
 

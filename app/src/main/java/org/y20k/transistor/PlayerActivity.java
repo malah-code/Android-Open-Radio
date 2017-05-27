@@ -232,12 +232,12 @@ public final class PlayerActivity extends AppCompatActivity   {
     }
 
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        Intent playerIntent = new Intent(this, MainActivity.class);
-        startActivity(playerIntent);
-    }
+//    @Override
+//    public void onBackPressed() {
+//        super.onBackPressed();
+//        Intent playerIntent = new Intent(this, MainActivity.class);
+//        startActivity(playerIntent);
+//    }
 
 
     @Override

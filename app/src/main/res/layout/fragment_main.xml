@@ -12,13 +12,13 @@
 
     <LinearLayout
         android:id="@+id/main_actioncall_layout"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="58dp"
-        android:visibility="visible">
+        android:orientation="horizontal"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/main_textview"
@@ -37,23 +37,61 @@
             android:id="@+id/main_actioncall_image_arrow"
             android:layout_width="72dp"
             android:layout_height="72dp"
+            android:layout_marginBottom="4dp"
             android:contentDescription="@string/descr_arrow_actioncall"
             android:minHeight="?android:attr/listPreferredItemHeight"
-            android:paddingStart="0dp"
             android:paddingEnd="0dp"
-            android:layout_marginBottom="4dp"
+            android:paddingStart="0dp"
             app:srcCompat="@drawable/smbl_arrow_actioncall_72dp" />
 
     </LinearLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/fav_recyclerview_collection"
+
+
+
+    <RelativeLayout
+        android:id="@+id/relativeEmpty"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="visible" />
+        android:layout_height="match_parent"
+        android:visibility="visible">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:orientation="vertical"
+            android:padding="@dimen/album_title_padding">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No Stations available, this may be due to internet problem or you have to add stations manually to get started."
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:textColor="@color/colorSecondaryLight" />
+
+            <Button
+                android:id="@+id/buttonRefreshInitData"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:text="Refresh"
+                android:textAlignment="center"
+                android:textColor="@color/colorPrimaryDark" />
+
+        </LinearLayout>
+
+
+
+    </RelativeLayout>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/main_recyclerview_collection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible" />
+        android:visibility="gone" />
+
 </LinearLayout>

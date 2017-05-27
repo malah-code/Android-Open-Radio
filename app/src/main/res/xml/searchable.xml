@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/app_name"
+    android:hint="@string/search_hint"
+
+
+    android:searchSuggestAuthority="org.y20k.transistor.sqlcore.SearchSuggesionProvider"
+    android:searchSuggestIntentAction="android.intent.action.press.SEARCH"
+    android:searchSuggestSelection="subtitle LIKE \? OR title LIKE \?"
+    />
+
+    <!--android:searchSuggestIntentData=""-->

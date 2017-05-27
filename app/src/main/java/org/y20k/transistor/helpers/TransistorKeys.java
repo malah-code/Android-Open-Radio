@@ -68,7 +68,7 @@ public class TransistorKeys {
     public static final String PREF_TIMER_RUNNING = "prefTimerRunning";
     public static final String PREF_LAYOUT_VIEW_MANAGER = "LayoutViewManager";
     public static final String PREF_TWO_PANE = "prefTwoPane";
-
+    public static final String PREF_INITIAL_DATA_LOADED = "initialDataLoaded";
     /* RESULTS */
     public static final String RESULT_FETCH_ERROR = "FETCH_ERROR";
     public static final String RESULT_PLAYLIST_TYPE = "PLAYLIST_TYPE";

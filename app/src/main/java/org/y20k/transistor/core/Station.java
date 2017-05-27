@@ -341,125 +341,128 @@ public final class Station implements Comparable<Station>, Parcelable {
             // Starts the query
             conn.connect();
             stream = conn.getInputStream();
-
-            //parse
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
-            parser.setInput(stream, null);
-            parser.nextTag();
-
-            List entries = new ArrayList();
-
-            parser.require(XmlPullParser.START_TAG, null, "channels");
-            while (parser.next() != XmlPullParser.END_TAG) {
-                if (parser.getEventType() != XmlPullParser.START_TAG) {
-                    continue;
-                }
-                String name = parser.getName();
-                // Starts by looking for the entry tag
-                if (name.equals("entry")) {
-                    parser.require(XmlPullParser.START_TAG, null, "entry");
-
-                    Station stationItem = new Station();
-                    //reset some variables
-                    stationItem.MarkdownDescription = "";
-
-                    while (parser.next() != XmlPullParser.END_TAG) {
-                        if (parser.getEventType() != XmlPullParser.START_TAG) {
-                            continue;
-                        }
-                        String tagName = parser.getName();
-                        if (tagName.equals("unique_id")) {
-                            parser.require(XmlPullParser.START_TAG, null, "unique_id");
-                            stationItem.UNIQUE_ID = readXmlElementText(parser);
-                            stationItem.IMAGE_FILE_NAME = stationItem.UNIQUE_ID + ".png";
-                            stationItem.SMALL_IMAGE_FILE_NAME = stationItem.UNIQUE_ID + "_small.png";
-                        } else if (tagName.equals("title")) {
-                            parser.require(XmlPullParser.START_TAG, null, "title");
-                            stationItem.TITLE = readXmlElementText(parser);
-                        } else if (tagName.equals("subtitle")) {
-                            parser.require(XmlPullParser.START_TAG, null, "subtitle");
-                            stationItem.SUBTITLE = readXmlElementText(parser);
-                        } else if (tagName.equals("image")) {
-                            parser.require(XmlPullParser.START_TAG, null, "image");
-                            stationItem.IMAGE_PATH = readXmlElementText(parser);
-                        } else if (tagName.equals("uri")) {
-                            parser.require(XmlPullParser.START_TAG, null, "uri");
-                            stationItem.StreamURI = readXmlElementText(parser);
-                        } else if (tagName.equals("content_type")) {
-                            parser.require(XmlPullParser.START_TAG, null, "content_type");
-                            stationItem.CONTENT_TYPE = readXmlElementText(parser);
-                        } else if (tagName.equals("rating")) {
-                            parser.require(XmlPullParser.START_TAG, null, "rating");
-                            String ratingVal = readXmlElementText(parser);
-                            stationItem.RATING = getIntegerRating(ratingVal);
-                        } else if (tagName.equals("comma_separated_tags")) {
-                            parser.require(XmlPullParser.START_TAG, null, "comma_separated_tags");
-                            stationItem.COMMA_SEPARATED_TAGS = readXmlElementText(parser);
-                        } else if (tagName.equals("category")) {
-                            parser.require(XmlPullParser.START_TAG, null, "category");
-                            stationItem.CATEGORY = readXmlElementText(parser);
-                        } else if (tagName.equals("markdown_description")) {
-                            parser.require(XmlPullParser.START_TAG, null, "markdown_description");
-                            stationItem.MarkdownDescription = readXmlElementText(parser);
-                        } else if (tagName.equals("small_image_URL")) {
-                            parser.require(XmlPullParser.START_TAG, null, "small_image_URL");
-                            stationItem.SMALL_IMAGE_PATH = readXmlElementText(parser);
-                        } else if (tagName.equals("description")) {
-                            parser.require(XmlPullParser.START_TAG, null, "description");
-                            stationItem.DESCRIPTION = readXmlElementText(parser);
-                        } else {
-                            skipXmlTagParse(parser);
-                        }
-                    }
-                    if (stationItem.UNIQUE_ID != null && !stationItem.UNIQUE_ID.isEmpty()
-                            && stationItem.StreamURI != null && !stationItem.StreamURI.isEmpty()) {
-
-
-                        //get content type of station streamUrl
-                        ContentType itemCnt = getContentType(Uri.parse(stationItem.StreamURI));
-
-                        //check 3.1.2 station URL (if playlist then extract first station URL
-                        if (isPlaylist(itemCnt)) {
-                            // download and parse station data from playlist file
-                            String itemPlaylistFileContent = downloadPlaylistFile(new URL(stationItem.StreamURI));
-                            // parse result of downloadPlaylistFile and fill streamUrl and Title/subtitle
-                            if (parse(itemPlaylistFileContent, stationItem)) {
-                                //get content type after updating the streamUrl
-                                itemCnt = getContentType(Uri.parse(stationItem.StreamURI));
-                            }else{
-                                LogHelper.e(LOG_TAG, "\n[File probably does not contain a valid streaming URL." + stationItem.StreamURI + "]");
-                                continue; //continue and don't save this station to DB
-                            }
-                        }
-
-                        //update content type of station and override the provided one if available
-                        if(itemCnt.type!=null && !itemCnt.type.isEmpty()) {
-                            stationItem.CONTENT_TYPE = itemCnt.type;
-                        }
-
-                        //add default Image URL
-                        if (stationItem.IMAGE_PATH == null || stationItem.IMAGE_PATH.isEmpty()) {
-                            IMAGE_PATH = getFavIconUrlString(stationItem.StreamURI); //default to fav icon
-                        }
-                        if (stationItem.SMALL_IMAGE_PATH == null || stationItem.SMALL_IMAGE_PATH.isEmpty()) {
-                            SMALL_IMAGE_PATH = IMAGE_PATH; //default AS IMAGE_PATH
-                        }
-                        //add station to db
-                        AddStationItemToDb(stationItem, mActivity);
-
-                        //for reference and to inform the adaptor we need the list of mInsertedStations
-                        mInsertedStations.add(stationItem);
-                    }
-                } else {
-                    skipXmlTagParse(parser);
-                }
-            }
+            readXmlElementsFromInputStream(mActivity, stream);
         } finally {
             // close InputStream after the app is
             // finished using it.
             if (stream != null) {
                 stream.close();
+            }
+        }
+    }
+
+    public void readXmlElementsFromInputStream(Activity mActivity, InputStream stream) throws XmlPullParserException, IOException {
+        //parse
+        XmlPullParser parser = Xml.newPullParser();
+        parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        parser.setInput(stream, null);
+        parser.nextTag();
+
+        List entries = new ArrayList();
+
+        parser.require(XmlPullParser.START_TAG, null, "channels");
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.getEventType() != XmlPullParser.START_TAG) {
+                continue;
+            }
+            String name = parser.getName();
+            // Starts by looking for the entry tag
+            if (name.equals("entry")) {
+                parser.require(XmlPullParser.START_TAG, null, "entry");
+
+                Station stationItem = new Station();
+                //reset some variables
+                stationItem.MarkdownDescription = "";
+
+                while (parser.next() != XmlPullParser.END_TAG) {
+                    if (parser.getEventType() != XmlPullParser.START_TAG) {
+                        continue;
+                    }
+                    String tagName = parser.getName();
+                    if (tagName.equals("unique_id")) {
+                        parser.require(XmlPullParser.START_TAG, null, "unique_id");
+                        stationItem.UNIQUE_ID = readXmlElementText(parser);
+                        stationItem.IMAGE_FILE_NAME = stationItem.UNIQUE_ID + ".png";
+                        stationItem.SMALL_IMAGE_FILE_NAME = stationItem.UNIQUE_ID + "_small.png";
+                    } else if (tagName.equals("title")) {
+                        parser.require(XmlPullParser.START_TAG, null, "title");
+                        stationItem.TITLE = readXmlElementText(parser);
+                    } else if (tagName.equals("subtitle")) {
+                        parser.require(XmlPullParser.START_TAG, null, "subtitle");
+                        stationItem.SUBTITLE = readXmlElementText(parser);
+                    } else if (tagName.equals("image")) {
+                        parser.require(XmlPullParser.START_TAG, null, "image");
+                        stationItem.IMAGE_PATH = readXmlElementText(parser);
+                    } else if (tagName.equals("uri")) {
+                        parser.require(XmlPullParser.START_TAG, null, "uri");
+                        stationItem.StreamURI = readXmlElementText(parser);
+                    } else if (tagName.equals("content_type")) {
+                        parser.require(XmlPullParser.START_TAG, null, "content_type");
+                        stationItem.CONTENT_TYPE = readXmlElementText(parser);
+                    } else if (tagName.equals("rating")) {
+                        parser.require(XmlPullParser.START_TAG, null, "rating");
+                        String ratingVal = readXmlElementText(parser);
+                        stationItem.RATING = getIntegerRating(ratingVal);
+                    } else if (tagName.equals("comma_separated_tags")) {
+                        parser.require(XmlPullParser.START_TAG, null, "comma_separated_tags");
+                        stationItem.COMMA_SEPARATED_TAGS = readXmlElementText(parser);
+                    } else if (tagName.equals("category")) {
+                        parser.require(XmlPullParser.START_TAG, null, "category");
+                        stationItem.CATEGORY = readXmlElementText(parser);
+                    } else if (tagName.equals("markdown_description")) {
+                        parser.require(XmlPullParser.START_TAG, null, "markdown_description");
+                        stationItem.MarkdownDescription = readXmlElementText(parser);
+                    } else if (tagName.equals("small_image_URL")) {
+                        parser.require(XmlPullParser.START_TAG, null, "small_image_URL");
+                        stationItem.SMALL_IMAGE_PATH = readXmlElementText(parser);
+                    } else if (tagName.equals("description")) {
+                        parser.require(XmlPullParser.START_TAG, null, "description");
+                        stationItem.DESCRIPTION = readXmlElementText(parser);
+                    } else {
+                        skipXmlTagParse(parser);
+                    }
+                }
+                if (stationItem.UNIQUE_ID != null && !stationItem.UNIQUE_ID.isEmpty()
+                        && stationItem.StreamURI != null && !stationItem.StreamURI.isEmpty()) {
+
+
+                    //get content type of station streamUrl
+                    ContentType itemCnt = getContentType(Uri.parse(stationItem.StreamURI));
+
+                    //check 3.1.2 station URL (if playlist then extract first station URL
+                    if (isPlaylist(itemCnt)) {
+                        // download and parse station data from playlist file
+                        String itemPlaylistFileContent = downloadPlaylistFile(new URL(stationItem.StreamURI));
+                        // parse result of downloadPlaylistFile and fill streamUrl and Title/subtitle
+                        if (parse(itemPlaylistFileContent, stationItem)) {
+                            //get content type after updating the streamUrl
+                            itemCnt = getContentType(Uri.parse(stationItem.StreamURI));
+                        }else{
+                            LogHelper.e(LOG_TAG, "\n[File probably does not contain a valid streaming URL." + stationItem.StreamURI + "]");
+                            continue; //continue and don't save this station to DB
+                        }
+                    }
+
+                    //update content type of station and override the provided one if available
+                    if(itemCnt.type!=null && !itemCnt.type.isEmpty()) {
+                        stationItem.CONTENT_TYPE = itemCnt.type;
+                    }
+
+                    //add default Image URL
+                    if (stationItem.IMAGE_PATH == null || stationItem.IMAGE_PATH.isEmpty()) {
+                        IMAGE_PATH = getFavIconUrlString(stationItem.StreamURI); //default to fav icon
+                    }
+                    if (stationItem.SMALL_IMAGE_PATH == null || stationItem.SMALL_IMAGE_PATH.isEmpty()) {
+                        SMALL_IMAGE_PATH = IMAGE_PATH; //default AS IMAGE_PATH
+                    }
+                    //add station to db
+                    AddStationItemToDb(stationItem, mActivity);
+
+                    //for reference and to inform the adaptor we need the list of mInsertedStations
+                    mInsertedStations.add(stationItem);
+                }
+            } else {
+                skipXmlTagParse(parser);
             }
         }
     }
@@ -952,30 +955,7 @@ public final class Station implements Comparable<Station>, Parcelable {
         Thread prepareThread = new Thread() {
             @Override
             public void run() {
-                boolean downloadDoneSuccessfully = false;
-                try {
-                    //load all stations and ensure images are cached
-                    final StationsDbHelper mDbHelper = new StationsDbHelper(cntxt);
-                    //try download the file
-                    Bitmap downloadedImage = downloadImageFile(sImagePath);
-                    //Save Image to desk
-                    if (downloadedImage != null) {
-                        writeImageFile(folder, downloadedImage, sImageFileName);
-                        downloadDoneSuccessfully = true;
-                    }
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } finally {
-                    // send local broadcast to inform all that image of this channel has been updated
-                    if (downloadDoneSuccessfully) {
-                        Intent i = new Intent();
-                        i.setAction(TransistorKeys.ACTION_COLLECTION_CHANGED);
-                        i.putExtra(TransistorKeys.EXTRA_COLLECTION_CHANGE, TransistorKeys.STATION_CHANGED_IMAGE);
-                        i.putExtra(TransistorKeys.EXTRA_STATION, Station.this);
-                        i.putExtra(TransistorKeys.EXTRA_STATION_DB_ID, _ID);
-                        LocalBroadcastManager.getInstance(cntxt.getApplicationContext()).sendBroadcast(i);
-                    }
-                }
+                syncSaveDownloadToDesk(cntxt, sImagePath, folder, sImageFileName);
             }
 
             @Override
@@ -984,6 +964,33 @@ public final class Station implements Comparable<Station>, Parcelable {
             }
         };
         prepareThread.start();
+    }
+
+    public void syncSaveDownloadToDesk(Context cntxt, String sImagePath, File folder, String sImageFileName) {
+        boolean downloadDoneSuccessfully = false;
+        try {
+            //load all stations and ensure images are cached
+            final StationsDbHelper mDbHelper = new StationsDbHelper(cntxt);
+            //try download the file
+            Bitmap downloadedImage = downloadImageFile(sImagePath);
+            //Save Image to desk
+            if (downloadedImage != null) {
+                writeImageFile(folder, downloadedImage, sImageFileName);
+                downloadDoneSuccessfully = true;
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } finally {
+            // send local broadcast to inform all that image of this channel has been updated
+            if (downloadDoneSuccessfully) {
+                Intent i = new Intent();
+                i.setAction(TransistorKeys.ACTION_COLLECTION_CHANGED);
+                i.putExtra(TransistorKeys.EXTRA_COLLECTION_CHANGE, TransistorKeys.STATION_CHANGED_IMAGE);
+                i.putExtra(TransistorKeys.EXTRA_STATION, Station.this);
+                i.putExtra(TransistorKeys.EXTRA_STATION_DB_ID, _ID);
+                LocalBroadcastManager.getInstance(cntxt.getApplicationContext()).sendBroadcast(i);
+            }
+        }
     }
 
 

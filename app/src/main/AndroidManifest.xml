@@ -24,6 +24,10 @@
         <meta-data android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc"/> -->
 
+        <!--hockeyapp.net
+        <meta-data android:name="net.hockeyapp.android.appIdentifier" android:value="2b8994e7a60b485dad0a5507ceb05c01" />
+        -->
+
         <!-- MEDIA BUTTON RECEIVER -->
         <receiver android:name="android.support.v4.media.session.MediaButtonReceiver">
             <intent-filter>
@@ -38,6 +42,12 @@
             android:launchMode="singleTop"
             android:resizeableActivity="true"
             android:configChanges="keyboardHidden|orientation|screenSize|screenLayout">
+
+            <!--Search-->
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
 
             <!-- Launcher -->
             <intent-filter>
@@ -127,6 +137,9 @@
             android:name=".helpers.SleepTimerService">
         </service>
 
+        <provider
+            android:authorities="org.y20k.transistor.sqlcore.SearchSuggesionProvider"
+            android:name=".sqlcore.SearchSuggesionProvider" />
     </application>
 
 </manifest>
